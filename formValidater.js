@@ -89,15 +89,15 @@ formValidater.prototype.removeFilter = function(inputElement, type) {
     return false;
 }
 
-formValidater.prototype.check = function(inputElement, callback) {
+formValidater.prototype.check = function(inputElement, successCal, errorCal) {
     var value = inputElement.value,
         filterCollection = this.filterMap.get(inputElement);
 
     if (filterCollection instanceof Array) {
         for (let i=0; i<filterCollection.length; ++i) {
             if (!filterCollection[i].executeFilter(value)) {
-                if (callback instanceof Function) {
-                    callback(filterCollection[i].message);
+                if (errorCal instanceof Function) {
+                    errorCal(filterCollection[i].message);
                 }
                 
                 this.invalidateIndex = i;
@@ -107,15 +107,19 @@ formValidater.prototype.check = function(inputElement, callback) {
         }
     }
 
+    if (successCal instanceof Function) {
+        successCal(value);
+    }
+
     return true;
 }
 
-formValidater.prototype.filterInput = function(inputElement, callback) {
+formValidater.prototype.filterInput = function(inputElement, successCal, errorCal) {
     var that = this,
         eventUtil = this.eventUtil;
 
     eventUtil.addHandler(inputElement, "keypress", function(event) {
-        if (!that.check(inputElement, callback)) {
+        if (!that.check(inputElement, successCal, errorCal)) {
             var filterCollection = that.filterMap.get(inputElement),
                 index = that.invalidateIndex;
 
@@ -184,9 +188,9 @@ function patternFilter(name, message, pattern) {
     }
 
     if (this.patternCollection[name]) {
-        this.pattern = this.patternCollection['name'];
+        this.pattern = this.patternCollection[name];
     } else if (pattern instanceof RegExp) {
-        this.pattern = RegExp;
+        this.pattern = pattern;
     } else {
         console.error("validator: No default settings found for name"+name+
         "please provide all parameters for patternFilter(name, message, pattern)");
@@ -219,7 +223,7 @@ patternFilter.prototype.messageCollection = {
     numeric: "This field must contain only number",
     integer: "This field must contain an integer",
     decimal: "This field must contain a decimal number",
-    email: "This field must contain a valid ip",
+    email: "This field must contain a valid email",
     alpha: "This field must only contain alphabetical characters",
     alphaNumeric: "This field must only contain alphabetical or numeric characters",
     alphaDash: "This field must only contain alpha-numeric characters, underscores, and dashes",

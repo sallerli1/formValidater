@@ -13,20 +13,24 @@
     </form>
     <p></p>
 <script type="text/javascript">
-    //document.querySelector("input").setCustomValidity("请输入4位数字的代码");
-    var input = document.querySelector("input"),
-        p =document.querySelector("p");
+        var input = document.querySelector("input"),
+                p = document.querySelector("p");
 
-    var validator = new formValidater();
-    validator.setFilter(input, {
-        type: "pattern",
-        name: "email"
-    });
-    validator.eventUtil.addHandler(input, "input", function(event) {
-        validator.check(input, function(message) {
-            p.innerHTML = message;
-        })
-    })
+            var validator = new formValidater();
+            validator.setFilter(input, {
+                type: "pattern",
+                name: "numeric"
+            });
+            validator.eventUtil.addHandler(input, "input",
+                function (event) {
+                    validator.check(input,
+                        function () {
+                            p.innerHTML = "";
+                        },
+                        function (message) {
+                            p.innerHTML = message;
+                        });
+                });
 
 </script>
 </body>
