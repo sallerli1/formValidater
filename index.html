@@ -17,8 +17,16 @@
     var input = document.querySelector("input"),
         p =document.querySelector("p");
 
-    var validator = new formValidator();
-    validator.setFilter()
+    var validator = new formValidater();
+    validator.setFilter(input, {
+        type: "pattern",
+        name: "email"
+    });
+    validator.eventUtil.addHandler(input, "input", function(event) {
+        validator.check(input, function(message) {
+            p.innerHTML = message;
+        })
+    })
 
 </script>
 </body>

@@ -192,7 +192,7 @@ function patternFilter(name, message, pattern) {
         "please provide all parameters for patternFilter(name, message, pattern)");
     }
 
-    Filter.apply(this,
+    Filter.call(this,
         Filter.prototype.defaultTypes['patternFilter'],
         _message);
 }
@@ -242,7 +242,7 @@ function twinsFilter(boundInputElement, message) {
     
     var _message = message ? message : "this field must contain the same value as "+name;
 
-    Filter.apply(this,
+    Filter.call(this,
         Filter.prototype.defaultTypes['twinsFilter'],
         _message);
 }
