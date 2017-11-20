@@ -92,13 +92,14 @@ formValidater.prototype.setMessageHolder = function(inputElement, holder) {
     this.messageHolderMap.set(inputElement, holder);
 }
 
-formValidater.prototype.check = function(inputElement) {
+formValidater.prototype.check = function(inputElement, callback) {
     var value = inputElement.value,
         filterCollection = this.filterMap.get(inputElement);
 
     if (filterCollection instanceof Array) {
         for (var filter of filterCollection) {
             if (!filter.executeFilter(value)) {
+                callback(filter.message);
             }
         }
     }
@@ -107,7 +108,7 @@ formValidater.prototype.check = function(inputElement) {
 function Filter(type, message) {
     this.type = type;
     this.message = message;
-    this.lock = false;
+    this.lock = true;
 }
 
 Filter.prototype.defaultTypes = {
@@ -208,11 +209,7 @@ patternFilter.prototype.messageCollection = {
 }
 
 patternFilter.prototype.executeFilter = function(value) {
-    if (!this.lock) {
-        return this.pattern.test(value);
-    } else {
-        console.warn("validator: this pattern fillter("+this.name+") is disabled");
-    }
+    return this.pattern.test(value);
 }
 
 function twinsFilter(boundInputElement, message) {
