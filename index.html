@@ -3,20 +3,23 @@
 <head>
     <meta charset="utf-8" />
     <title>form test</title>
+    <script type="text/javascript" src="formValidater.js" ></script>
 </head>
 
 <body>
     <form name="test" action="." method="post">
-        <input type="text" required pattern="^\d{4}$" placeholder="请输入代码" >
+        <input type="text" required pattern="" placeholder="请输入代码" >
         <button type="submit">Check</button>
     </form>
+    <p></p>
 <script type="text/javascript">
     //document.querySelector("input").setCustomValidity("请输入4位数字的代码");
-    document.querySelector("input").oninput =function() {
-        this.setCustomValidity("1");
-        var form = this.parentElement;
-        form.dispatchEvent(form.onsubmit);
-    }
+    var input = document.querySelector("input"),
+        p =document.querySelector("p");
+
+    var validator = new formValidator();
+    validator.setFilter()
+
 </script>
 </body>
 </html>

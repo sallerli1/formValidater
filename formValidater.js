@@ -7,7 +7,8 @@ function inheritPrototype(sub, supper) {
 
 function formValidater() {
     this.filterMap = new Map();
-    this.messageHolderMap = new Map();
+    this.checkResult = true;
+    this.invalidateIndex = -1;
 }
 
 formValidater.prototype.eventUtil = {
@@ -88,21 +89,42 @@ formValidater.prototype.removeFilter = function(inputElement, type) {
     return false;
 }
 
-formValidater.prototype.setMessageHolder = function(inputElement, holder) {
-    this.messageHolderMap.set(inputElement, holder);
-}
-
 formValidater.prototype.check = function(inputElement, callback) {
     var value = inputElement.value,
         filterCollection = this.filterMap.get(inputElement);
 
     if (filterCollection instanceof Array) {
-        for (var filter of filterCollection) {
-            if (!filter.executeFilter(value)) {
-                callback(filter.message);
+        for (let i=0; i<filterCollection.length; ++i) {
+            if (!filterCollection[i].executeFilter(value)) {
+                if (callback instanceof Function) {
+                    callback(filterCollection[i].message);
+                }
+                
+                this.invalidateIndex = i;
+
+                return false;
             }
         }
     }
+
+    return true;
+}
+
+formValidater.prototype.filterInput = function(inputElement, callback) {
+    var that = this,
+        eventUtil = this.eventUtil;
+
+    eventUtil.addHandler(inputElement, "keypress", function(event) {
+        if (!that.check(inputElement, callback)) {
+            var filterCollection = that.filterMap.get(inputElement),
+                index = that.invalidateIndex;
+
+            if (!filterCollection[index].isLocked()) {
+                let event = eventUtil.getEvent(event);
+                eventUtil.preventDefault(event);
+            }
+        }
+    });
 }
 
 function Filter(type, message) {
@@ -126,24 +148,25 @@ Filter.prototype.lockFilter = function() {
     this.lock = true;
 }
 
+Filter.prototype.isLocked = function() {
+    return this.lock;
+}
+
 Filter.prototype.executeFilter = function() {}
 
 Filter.prototype.createFilter = function(options, exec) {
     switch (options['type']) {
         case "twin":
             return new twinsFilter(options['bound'], options['message']);
-            break;
     
         case "pattern":
             return new patternFilter(options['name'], options['message'], options['pattern']);
-            break;
 
         case "required":
             break;
 
         default:
             return new customFilter(options, exec);
-            break;
     }
 }
 
