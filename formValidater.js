@@ -105,6 +105,9 @@ formValidater.prototype.setFilter = function(inputElement, options, exec) {
 
         while (!typeOf(element, "HTMLFormElement")) {
             element = element.parentElement;
+            if (typeOf(element, "HTMLBodyElement") || typeOf(element, "HTMLHtmlElement")) {
+                return true;
+            }
         }
         element.setAttribute("novalidate", "true");
     }
@@ -112,15 +115,19 @@ formValidater.prototype.setFilter = function(inputElement, options, exec) {
     return true;
 }
 
-/* formValidater.prototype.removeFilter = function(inputElement, type) {
+formValidater.prototype.removeFilter = function(inputElement, index) {
     var filterCollection = this.filterMap.get(inputElement);
 
-    if (filterCollection instanceof Map) {
-        return filterCollection.delete(type);
+    if (typeOf(filterCollection, "Array")) {
+        if (filterCollection[index]) {
+            return delete filterCollection[index];
+        }
+
+        return false
     }
 
     return false;
-} */
+} 
 
 formValidater.prototype.check = function(inputElement,options) {
     var value = inputElement.value,
@@ -222,6 +229,20 @@ Filter.prototype.createFilter = function(options, exec) {
         default:
             return new customFilter(options, exec);
     }
+}
+
+function requiredFilter(message) {
+    var _message = message ? message : "this field must not be empty";
+
+    Filter.call(this,
+        Filter.prototype.defaultTypes['requiredFilter'],
+        _message);
+}
+
+inheritPrototype(requiredFilter, Filter);
+
+requiredFilter.prototype.executeFilter = function(value) {
+    return (value == "" || value == null || value == undefined)
 }
 
 function patternFilter(name, message, pattern) {
