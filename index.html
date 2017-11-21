@@ -8,29 +8,69 @@
 
 <body>
     <form name="test" action="." method="post">
-        <input type="text" required pattern="" placeholder="请输入代码" >
+        <input id="input1" type="text"  pattern="" placeholder="请输入数字" >
+        <p id="p1"></p>
+        <input id="input2" type="text"  pattern="" placeholder="请重新输入" >
+        <p id="p2"></p>
         <button type="submit">Check</button>
     </form>
-    <p></p>
 <script type="text/javascript">
-        var input = document.querySelector("input"),
-                p = document.querySelector("p");
+        var input1 = document.querySelector("#input1"),
+            input2 = document.querySelector("#input2"),
+            p1 = document.querySelector("#p1");
+            p2 = document.querySelector("#p2");
 
             var validator = new formValidater();
-            validator.setFilter(input, {
+            validator.setFilter(input1, {
                 type: "pattern",
-                name: "numeric"
+                name: "numeric",
+                message: "请输入数字",
+                locked: false
             });
-            validator.eventUtil.addHandler(input, "input",
+
+            validator.setFilter(input2, {
+                type: "pattern",
+                name: "numeric",
+                message: "请输入数字",
+                locked: false
+            });
+
+            validator.setFilter(input2, {
+                type: "twin",
+                bound: input1,
+                message: "请与上面输入保持一致",
+                locked: true
+            });
+            validator.eventUtil.addHandler(input1, "input",
                 function (event) {
-                    validator.check(input,
-                        function () {
-                            p.innerHTML = "";
+                    validator.check(input1, {
+                        success: function () {
+                            p1.innerHTML = "";
                         },
-                        function (message) {
-                            p.innerHTML = message;
-                        });
+                        error: function (message) {
+                            p1.innerHTML = message;
+                        }
+                    });
                 });
+            validator.eventUtil.addHandler(input2, "input",
+                function (event) {
+                    validator.check(input2, {
+                        success: function () {
+                            p2.innerHTML = "";
+                        },
+                        error: function (message) {
+                            p2.innerHTML = message;
+                        }
+                    });
+                });
+            /*validator.filterInput(input, {
+                success: function () {
+                    p.innerHTML = "";
+                },
+                error: function (message) {
+                    p.innerHTML = message;
+                }
+            });*/
 
 </script>
 </body>

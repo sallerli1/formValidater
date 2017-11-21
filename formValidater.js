@@ -5,6 +5,10 @@ function inheritPrototype(sub, supper) {
     sub.prototype = prototype;
 }
 
+function typeOf(variable, type) {
+    return Object.prototype.toString.call(variable) == "[object "+type+"]";
+}
+
 function formValidater() {
     this.filterMap = new Map();
     this.checkResult = true;
@@ -55,31 +59,60 @@ formValidater.prototype.eventUtil = {
         } else {
             event.cancelBubble = true;
         }
+    },
+
+    getRelatedTarget: function(event) {
+        if (event.relatedTarget) {
+            return event.relatedTarget;
+        } else if (event.toElement) {
+            return event.toElement;
+        } else if (event.fromElement) {
+            return event.fromElement;
+        } else {
+            return null;
+        }
+    },
+
+    getCharCode: function(event) {
+        if (typeof event.charCode == "number") {
+            return event.charCode;
+        } else {
+            return event.keyCode;
+        }
     }
 }
 
 formValidater.prototype.setFilter = function(inputElement, options, exec) {
-    var filter = Filter.prototype.createFilter(options, exec);
-    var filterCollection = this.filterMap.get(inputElement);
+    if (!typeOf(inputElement, "HTMLInputElement")) {
+        return false;
+    }
 
-    if (filterCollection instanceof Array) {
-        return filterCollection.push(filter);
+    var filter = Filter.prototype.createFilter(options, exec),
+        filterCollection = this.filterMap.get(inputElement),
+        that = this,
+        element = inputElement;
+
+    if (!options['locked']) {
+        filter.unlockFilter();
+    }
+
+    if (typeOf(filterCollection, "Array")) {
+        filterCollection.push(filter);
     } else {
         filterCollection = new Array();
         this.filterMap.set(inputElement, filterCollection);
         filterCollection.push(filter);
-        if (inputElement instanceof HTMLElement) {
-            var that = this;
-            this.eventUtil.addHandler(inputElement, "submit", function(event) {
-                that.eventUtil.preventDefault(that.eventUtil.getEvent(event));
-            });
+
+        while (!typeOf(element, "HTMLFormElement")) {
+            element = element.parentElement;
         }
+        element.setAttribute("novalidate", "true");
     }
 
-    return false;
+    return true;
 }
 
-formValidater.prototype.removeFilter = function(inputElement, type) {
+/* formValidater.prototype.removeFilter = function(inputElement, type) {
     var filterCollection = this.filterMap.get(inputElement);
 
     if (filterCollection instanceof Map) {
@@ -87,17 +120,24 @@ formValidater.prototype.removeFilter = function(inputElement, type) {
     }
 
     return false;
-}
+} */
 
-formValidater.prototype.check = function(inputElement, successCal, errorCal) {
+formValidater.prototype.check = function(inputElement,options) {
     var value = inputElement.value,
         filterCollection = this.filterMap.get(inputElement);
 
-    if (filterCollection instanceof Array) {
+    if (typeOf(filterCollection, "Array")) {
         for (let i=0; i<filterCollection.length; ++i) {
-            if (!filterCollection[i].executeFilter(value)) {
-                if (errorCal instanceof Function) {
-                    errorCal(filterCollection[i].message);
+
+            if (!filterCollection[i].isLocked() && options['value']) {
+                var isValidate = filterCollection[i].executeFilter(options['value']);
+            } else {
+                var isValidate = filterCollection[i].executeFilter(value);
+            }
+
+            if (!isValidate) {
+                if (typeOf(options['error'], "Function")) {
+                    options['error'](filterCollection[i].message);
                 }
                 
                 this.invalidateIndex = i;
@@ -107,24 +147,34 @@ formValidater.prototype.check = function(inputElement, successCal, errorCal) {
         }
     }
 
-    if (successCal instanceof Function) {
-        successCal(value);
+    if (typeOf(options['success'], "Function")) {
+        if (options['value']) {
+            options['success'](options['value']);
+        } else {
+            options['success'](value);
+        }
     }
 
     return true;
 }
 
-formValidater.prototype.filterInput = function(inputElement, successCal, errorCal) {
+formValidater.prototype.filterInput = function(inputElement,options) {
     var that = this,
         eventUtil = this.eventUtil;
 
     eventUtil.addHandler(inputElement, "keypress", function(event) {
-        if (!that.check(inputElement, successCal, errorCal)) {
+        var charCode = eventUtil.getCharCode(event);
+        
+        if (charCode>9 && !event.ctrlKey) {
+            options['value'] =inputElement.value + String.fromCharCode(charCode);
+        }
+
+        if (!that.check(inputElement,options) ) {
             var filterCollection = that.filterMap.get(inputElement),
                 index = that.invalidateIndex;
 
-            if (!filterCollection[index].isLocked()) {
-                let event = eventUtil.getEvent(event);
+            if (!filterCollection[index].isLocked() && charCode>9 && !event.ctrlKey) {
+                var event = eventUtil.getEvent(event);
                 eventUtil.preventDefault(event);
             }
         }
@@ -178,7 +228,7 @@ function patternFilter(name, message, pattern) {
 
     this.name = name;
 
-    if (message instanceof String) {
+    if (typeOf(message, "String")) {
         var _message = message;
     } else if (this.messageCollection[name]) {
         var _message = this.messageCollection[name];
@@ -189,7 +239,7 @@ function patternFilter(name, message, pattern) {
 
     if (this.patternCollection[name]) {
         this.pattern = this.patternCollection[name];
-    } else if (pattern instanceof RegExp) {
+    } else if (typeOf(pattern, "RegExp")) {
         this.pattern = pattern;
     } else {
         console.error("validator: No default settings found for name"+name+
