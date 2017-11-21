@@ -224,7 +224,7 @@ Filter.prototype.createFilter = function(options, exec) {
             return new patternFilter(options['name'], options['message'], options['pattern']);
 
         case "required":
-            break;
+            return new requiredFilter(options['message']);
 
         default:
             return new customFilter(options, exec);
@@ -242,7 +242,7 @@ function requiredFilter(message) {
 inheritPrototype(requiredFilter, Filter);
 
 requiredFilter.prototype.executeFilter = function(value) {
-    return (value == "" || value == null || value == undefined)
+    return !(value == "" || value == null || value == undefined)
 }
 
 function patternFilter(name, message, pattern) {

@@ -22,10 +22,20 @@
 
             var validator = new formValidater();
             validator.setFilter(input1, {
+                type: "required",
+                locked: true
+            });
+
+            validator.setFilter(input1, {
                 type: "pattern",
                 name: "numeric",
                 message: "请输入数字",
                 locked: false
+            });
+
+            validator.setFilter(input2, {
+                type: "required",
+                locked: true
             });
 
             validator.setFilter(input2, {
