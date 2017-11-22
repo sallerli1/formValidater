@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>form test</title>
-    <script type="text/javascript" src="formValidater.js" ></script>
+    <script type="text/javascript" src="formValidator.js" ></script>
 </head>
 
 <body>
@@ -28,13 +28,14 @@
 
             validator.setFilter(input1, {
                 type: "pattern",
-                name: "numeric",
-                message: "请输入数字",
-                locked: false
+                name: "email",
+                message: "请输入邮箱",
+                locked: true
             });
 
             validator.setFilter(input2, {
                 type: "required",
+                message: "请与上面输入保持一致",
                 locked: true
             });
 

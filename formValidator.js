@@ -1,4 +1,15 @@
-
+/*
+* Author saller
+* Email weskerli@163.com
+* Date 2017-11-22
+*
+* This is a validator to check form validation which
+*     currently provide pattern(RegExp) check,
+*     twins check(check if one input equals another),
+*     and required(not empty) check.
+*
+* hint: the current version can only check validation of HTMLInputElement.
+*/
 function inheritPrototype(sub, supper) {
     var prototype = Object.create(supper.prototype);
     prototype.constructor = sub;
@@ -9,13 +20,15 @@ function typeOf(variable, type) {
     return Object.prototype.toString.call(variable) == "[object "+type+"]";
 }
 
-function formValidater() {
+function formValidator() {
     this.filterMap = new Map();
     this.checkResult = true;
     this.invalidateIndex = -1;
 }
 
-formValidater.prototype.eventUtil = {
+
+// some event utilities that might be useful.
+formValidator.prototype.eventUtil = {
 
     addHandler: function (element, type, handler) {
         if (element.addEventListener) {
@@ -82,7 +95,9 @@ formValidater.prototype.eventUtil = {
     }
 }
 
-formValidater.prototype.setFilter = function(inputElement, options, exec) {
+//add a filter to an input element,
+//    the parameter 'options' varys along with the filter being added.
+formValidator.prototype.setFilter = function(inputElement, options, exec) {
     if (!typeOf(inputElement, "HTMLInputElement")) {
         return false;
     }
@@ -115,7 +130,9 @@ formValidater.prototype.setFilter = function(inputElement, options, exec) {
     return true;
 }
 
-formValidater.prototype.removeFilter = function(inputElement, index) {
+// to delete a filter bound to an input element,
+// this could only delete a filter when you know the index of it currently.
+formValidator.prototype.removeFilter = function(inputElement, index) {
     var filterCollection = this.filterMap.get(inputElement);
 
     if (typeOf(filterCollection, "Array")) {
@@ -129,7 +146,14 @@ formValidater.prototype.removeFilter = function(inputElement, index) {
     return false;
 } 
 
-formValidater.prototype.check = function(inputElement,options) {
+// to check validation of an input element according to the filters bound to it
+//
+// the options is an object which contains 
+// success: a callback function to run when input is valid,
+//     it takes the current input value as the only parameter.
+// error: a callback function to run when input is invalid,
+//     it takes the error message as the only parameter.
+formValidator.prototype.check = function(inputElement,options) {
     var value = inputElement.value,
         filterCollection = this.filterMap.get(inputElement);
 
@@ -165,7 +189,14 @@ formValidater.prototype.check = function(inputElement,options) {
     return true;
 }
 
-formValidater.prototype.filterInput = function(inputElement,options) {
+// to prevent user from inputing when the input is invalid
+//
+// the options is an object which contains 
+// success: a callback function to run when input is valid,
+//     it takes the current input value as the only parameter.
+// error: a callback function to run when input is invalid,
+//     it takes the error message as the only parameter.
+formValidator.prototype.filterInput = function(inputElement,options) {
     var that = this,
         eventUtil = this.eventUtil;
 
@@ -188,6 +219,7 @@ formValidater.prototype.filterInput = function(inputElement,options) {
     });
 }
 
+// supper type of a filter
 function Filter(type, message) {
     this.type = type;
     this.message = message;
@@ -201,6 +233,8 @@ Filter.prototype.defaultTypes = {
     customFilter: 3
 }
 
+// to unlock a filter means it could be taken into consideration
+//     when you want to prevent user from inputting
 Filter.prototype.unlockFilter = function() {
     this.lock = false;
 }
@@ -231,6 +265,7 @@ Filter.prototype.createFilter = function(options, exec) {
     }
 }
 
+// the required filter(not empty)
 function requiredFilter(message) {
     var _message = message ? message : "this field must not be empty";
 
@@ -245,6 +280,9 @@ requiredFilter.prototype.executeFilter = function(value) {
     return !(value == "" || value == null || value == undefined)
 }
 
+// the pattern filter,
+// the parameter message is optional, needed when you offer a custom error message
+// the parameter pattern is optional, needed when you offer a custom RegExp
 function patternFilter(name, message, pattern) {
 
     this.name = name;
@@ -274,6 +312,7 @@ function patternFilter(name, message, pattern) {
 
 inheritPrototype(patternFilter, Filter);
 
+//these are the currently supported patterns
 patternFilter.prototype.patternCollection = {
     numeric: /^[0-9]+$/,
     integer: /^\-?[0-9]+$/,
@@ -290,6 +329,7 @@ patternFilter.prototype.patternCollection = {
     url: /^((http|https):\/\/(\w+:{0,1}\w*@)?(\S+)|)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/,
 }
 
+//these are the default error message for each pattern
 patternFilter.prototype.messageCollection = {
     numeric: "This field must contain only number",
     integer: "This field must contain an integer",
@@ -306,10 +346,14 @@ patternFilter.prototype.messageCollection = {
     url: "this field must contain a valid url"
 }
 
+// check input validation according this filter
 patternFilter.prototype.executeFilter = function(value) {
     return this.pattern.test(value);
 }
 
+// the twin filter, to check whether an input is the same as the other
+// the parameter boundInputElement is the other input
+// the parameter message is optional, needed when you offer a custom error message
 function twinsFilter(boundInputElement, message) {
     this.bound = boundInputElement;
 
@@ -324,12 +368,18 @@ function twinsFilter(boundInputElement, message) {
 
 inheritPrototype(twinsFilter, Filter);
 
+// check input validation according this filter
 twinsFilter.prototype.executeFilter = function(value) {
     var anotherValue = this.bound.value;
 
     return anotherValue === value;
 }
 
+// if no type is matched, the customFilter will be constructed
+// the options are free to offer
+// the parameter exec is a function to check input validation according this filter,
+//     which is important.
+//     it take a value as the only parameter to validate, and return true for success, false for error
 function customFilter(options, exec) {
     for (let key in options) {
         if (options.hasOwnProperty(i)) {
