@@ -26,16 +26,20 @@ the return value means whether the inplementation is successful
 check validation of the inputElement according to the filters bound to it
 
     the options is object which contains two member functions: 
-        success: a function which will run when the input is valid, it takes the current input value as the only parameter
-        error: a function which will run when the input is invalid, it takes the error message as the only parameter
+        success: a function which will run when the input is valid,
+            it takes the current input value as the only parameter
+        error: a function which will run when the input is invalid,
+            it takes the error message as the only parameter
 
 #### filterInput(HTMLInputElement: inputElement, Object: options)
 
 prevent user from inputting when the input is invalid, when a filter is lock, it will not be considered when filtering
 
     the options is object which contains two member functions: 
-        success: a function which will run when the input is valid, it takes the current input value as the only parameter
-        error: a function which will run when the input is invalid, it takes the error message as the only parameter
+        success: a function which will run when the input is valid,
+            it takes the current input value as the only parameter
+        error: a function which will run when the input is invalid,
+            it takes the error message as the only parameter
 
 ### Filter Tyes
 
@@ -89,7 +93,7 @@ check whether the input is the same as the other input
 ### Example
 
 ```
-var validator = new formValidater();
+            var validator = new formValidator();
             validator.setFilter(input1, {
                 type: "required",
                 locked: true
@@ -121,6 +125,7 @@ var validator = new formValidater();
                 message: "请与上面输入保持一致",
                 locked: true
             });
+
             validator.eventUtil.addHandler(input1, "input",
                 function (event) {
                     validator.check(input1, {
@@ -132,6 +137,7 @@ var validator = new formValidater();
                         }
                     });
                 });
+
             validator.eventUtil.addHandler(input2, "input",
                 function (event) {
                     validator.check(input2, {
@@ -143,4 +149,13 @@ var validator = new formValidater();
                         }
                     });
                 });
+
+            /*validator.filterInput(input, {
+                success: function () {
+                    p.innerHTML = "";
+                },
+                error: function (message) {
+                    p.innerHTML = message;
+                }
+            });*/
 ```
